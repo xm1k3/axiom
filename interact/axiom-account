@@ -47,9 +47,11 @@ then
 		ln -s "$AXIOM_PATH/accounts/$1.json" "$AXIOM_PATH/axiom.json"	
 		provider="$(cat "$AXIOM_PATH/axiom.json" | jq -r '.provider')"
     $AXIOM_PATH/interact/axiom-provider $provider
-        if [[ "$provider" == "do" ]]; then
-        echo -e "${Blue}Installing doctl...${Color_Off}"
- if [[ $BASEOS == "Mac" ]]; then
+    
+    
+if [[ "$provider" == "do" ]]; then
+ echo -e "${Blue}Installing doctl...${Color_Off}"
+if [[ $BASEOS == "Mac" ]]; then
   brew install doctl
  elif [[ $BASEOS == "Linux" ]]; then
   OS=$(lsb_release -i | awk '{ print $3 }')
@@ -67,43 +69,49 @@ then
  doctl auth init -t "$token" || bootstrap
 fi
 
-        if [[ "$provider" == "linode" ]]; 
-        then
-            
-            echo -e "${Green}Updating linode-cli\n ${Color_Off}"	
-            sudo pip3 install linode-cli --upgrade
-            token="$(jq -r '.do_key' "$AXIOM_PATH"/accounts/"$1".json)"
-            size="$(jq -r '.default_size' "$AXIOM_PATH"/accounts/"$1".json)"
-            region="$(jq -r '.region' "$AXIOM_PATH"/accounts/"$1".json)"
-            mkdir -p "$HOME/.config"
-            echo -e "[DEFAULT]\ndefault-user = axiom\n\n[axiom]\ntoken = $token\nregion = $region\ntype = $size\nimage = linode/alpine3.10" > "$HOME/.config/linode-cli"
-            unauthed=$(curl -s -H "Authorization: Bearer $token" https://api.linode.com/v4/account | grep Invalid  | wc -l | tr -d ' ')
-            if [[ "$unauthed" == "1" ]]; then
-             echo -e "Not authenticated to linode-cli"
-             bootstrap
-            fi
-        fi
 
-        if [[ "$provider" == "ibm" ]]; 
-        then
-           token="$(jq -r '.ibm_cloud_api_key' "$AXIOM_PATH"/accounts/"$1".json)"
-           ibmcloud login --apikey $token --no-region || bootstrap
-        fi
+if [[ "$provider" == "linode" ]]; 
+ then
+echo -e "${Green}Updating linode-cli\n ${Color_Off}"	
+ sudo pip3 install linode-cli --upgrade
+token="$(jq -r '.do_key' "$"/accounts/"$1".json)"
+size="$(jq -r '.default_size' "$AXIOM_PATH"/accounts/"$1".json)"
+region="$(jq -r '.region' "$AXIOM_PATH"/accounts/"$1".json)"
+mkdir -p "$HOME/.config"
+echo -e "[DEFAULT]\ndefault-user = axiom\n\n[axiom]\ntoken = $token\nregion = $region\ntype = $size\nimage = linode/alpine3.10" > "$HOME/.config/linode-cli"
+unauthed=$(curl -s -H "Authorization: Bearer $token" https://api.linode.com/v4/account | grep Invalid  | wc -l | tr -d ' ')
+if [[ "$unauthed" == "1" ]]; then
+echo -e "Not authenticated to linode-cli"
+bootstrap
+ fi
+fi
 
-        if [[ "$provider" == "azure" ]]; 
-        then
-           az ad signed-in-user show || bootstrap
-        fi
+ if [[ "$provider" == "ibm" ]]; 
+then
+token="$(jq -r '.ibm_cloud_api_key' "$AXIOM_PATH"/accounts/"$1".json)"
+ibmcloud login --apikey $token --no-region || bootstrap
+fi
 
-		echo -e "${Green}Selected $1 successfully${Color_Off}"
-	else
-		echo -e "${Red}Account name not present${Color_Off}"
-	fi
+if [[ "$provider" == "docker" ]]; 
+then
+docker login || boostrap
+fi 
+
+
+if [[ "$provider" == "azure" ]]; 
+ then
+az ad signed-in-user show || bootstrap
+fi
+echo -e "${Green}Selected $1 successfully${Color_Off}"
 else
-	echo -e "${BWhite}Available Accounts${Color_Off}"
-	echo -n -e "${Blue}"
-	for account in $accounts
-	do
+echo -e "${Red}Account name not present${Color_Off}"
+fi
+
+else
+echo -e "${BWhite}Available Accounts${Color_Off}"
+echo -n -e "${Blue}"
+for account in $accounts
+do
 		if [[ $account == $current ]]
 		then
 			echo "* $account"
