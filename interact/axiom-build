@@ -16,6 +16,12 @@ op_ssh_password=$(cat /dev/urandom| base64 | head -c 128 | tr -d '+=-' | tr -d '
 account_path=$(ls -la $AXIOM_PATH/axiom.json | rev | cut -d " " -f 1 | rev)
 provider="$(cat "$AXIOM_PATH/axiom.json" | jq -r '.provider')"
 
+if [[ $provider == "docker" ]]; then
+echo -e ""
+echo -e '\033[1mDocker provider detected. Defaulting to Docker provisioner.\033[0m'
+provisioner="docker"
+fi
+
 # ###########################################################################################################
 # Get the provisioner file
 if [ -z "$provisioner" ]; then
